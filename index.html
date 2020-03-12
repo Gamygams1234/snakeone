@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas id="canvas" width="608px" height="608px"></canvas>
+    <script>
+      // settting upt the canvas
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // loading images
+      //   let imageName = new Image();
+      //   imageName.src = "path/img.png";
+      //   let audioName = new Image();
+      //   audioName.src = "path/audio.png";
+
+      let ground = new Image();
+      ground.src = "img/ground.png";
+
+      let foodImage = new Image();
+      foodImage.src = "img/food.png";
+      // setting AUDI
+      let eat = new Audio();
+      eat.src = "audio/eat.mp3";
+      let lilFlip = new Audio();
+      lilFlip.src = "audio/gameOver.mp3";
+
+      // setting variables
+      let box = 32;
+      let snake = [];
+      snake[0] = { x: 9 * box, y: 10 * box };
+      snake[1] = { x: 8 * box, y: 10 * box };
+      let food = {
+        // position betwwen 1 and 17 boxes
+        x: Math.floor(Math.random() * 17 + 1) * box,
+        // position between 1 and 18 boxes
+        y: Math.floor(Math.random() * 15 + 3) * box
+      };
+      let score = 0;
+      let d = "right";
+      let newHead;
+      var width = canvas.width;
+      var height = canvas.height;
+      var gameFinished = false;
+      var fps = 3;
+      // game over function
+      function gameOver() {
+        clearInterval(game);
+        gameFinished = true;
+        ctx.font = "60px Courier";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("GAME OVER!", width / 2, height / 2);
+        lilFlip.play();
+        document.onkeypress = restart;
+      }
+      function restart(e) {
+        if (e.keyCode == 32) {
+          lilFlip.pause();
+          game();
+          gameFinished = false;
+        }
+      }
+
+      // putting the event listener fot the keypress  to change direction
+      //document.addEventListener("keydown", direction);
+      function direction(e) {
+        // making sure that it matches a keycode and the direction is not opposite of the flow
+        if (e.keyCode == 97 && d != "right") {
+          d = "left";
+        } else if (e.keyCode == 119 && d != "down") {
+          d = "up";
+        } else if (e.keyCode == 100 && d != "left") {
+          d = "right";
+        } else if (e.keyCode == 115 && d != "up") {
+          d = "down";
+        }
+      }
+      document.onkeypress = direction;
+      // function draw
+      function draw() {
+        ctx.drawImage(ground, 0, 0);
+        // checking first if the snake ate the food
+        if (snake[0].x == food.x && snake[0].y == food.y) {
+          score++;
+
+          food = {
+            // position betwwen 1 and 17 boxes
+            x: Math.floor(Math.random() * 17 + 1) * box,
+            // position between 1 and 18 boxes
+            y: Math.floor(Math.random() * 15 + 3) * box
+          };
+        } else {
+          snake.pop();
+        }
+        if (d == "right") {
+          newHead = { x: snake[0].x + box, y: snake[0].y };
+          snake.unshift(newHead);
+        } else if (d == "left") {
+          newHead = { x: snake[0].x - box, y: snake[0].y };
+          snake.unshift(newHead);
+        } else if (d == "down") {
+          newHead = { x: snake[0].x, y: snake[0].y + box };
+          snake.unshift(newHead);
+        } else if (d == "up") {
+          newHead = { x: snake[0].x, y: snake[0].y - box };
+          snake.unshift(newHead);
+        }
+        for (var i = 1; i < snake.length; i++) {
+          if (newHead.x == snake[i].x && newHead.y == snake[i].y) {
+            gameOver();
+          }
+        }
+
+        for (let i = 0; i < snake.length; i++) {
+          // making he fill collor for the snake boxes using the ternary method
+          ctx.fillStyle = i == 0 ? "green" : "white";
+          // filling the rectangles those colors
+          ctx.fillRect(snake[i].x, snake[i].y, box, box);
+          // outlining the snake boxes
+          ctx.strokeStyle = "red";
+          ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+        }
+        // draw food
+        ctx.drawImage(foodImage, food.x, food.y);
+        ctx.fillStyle = "white";
+        ctx.font = "45px Changa One";
+        ctx.fillText(score, 2 * box, 1.6 * box);
+        // removing the snake tail and adding the head
+        // checking colission
+        if (
+          snake[0].x > box * 17 ||
+          snake[0].x < 0 + box ||
+          snake[0].y > height - box * 2 ||
+          snake[0].y < box * 3
+        ) {
+          gameOver();
+        }
+      }
+      // setting timeout to make our game faster after 5
+      function getSpeedFromScore(score) {
+        if (score > 4) {
+          fps = 300 - (score - 4) * 20;
+          return fps;
+        } else {
+          return 300;
+        }
+      }
+
+      function game() {
+        if (!gameFinished) {
+          draw();
+
+          var speed = getSpeedFromScore(score);
+          setTimeout(game, speed);
+        }
+      }
+      game();
+      //   let game = setInterval(draw, 1000 / fps);
+
+      // ideas sorry into an array and random sorrrys
+    </script>
+  </body>
+</html>
